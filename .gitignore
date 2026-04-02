@@ -33,7 +33,7 @@ build/
 .vscode/
 
 ### Security & Secrets (CRITICAL) ##
-firebase-service-account.json
+**/firebase-service-account.json
 *.pem
 *.key
 .env
