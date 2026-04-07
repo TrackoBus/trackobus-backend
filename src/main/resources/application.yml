@@ -22,7 +22,7 @@ spring:
     show-sql: true # Prints SQL queries in the console to help you debug
     properties:
       hibernate:
-        format_sql: true
+        "[format_sql]": true
 
   # 3. Redis Cache Configuration
   data:
