@@ -1,5 +1,6 @@
 package Group16.TrackoBus.backend.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.locationtech.jts.geom.Coordinate;
@@ -11,7 +12,9 @@ import org.springframework.stereotype.Service;
 import com.google.maps.DirectionsApi;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
+import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsStep;
 import com.google.maps.model.TravelMode;
 
 import Group16.TrackoBus.backend.entity.Route;
@@ -42,11 +45,18 @@ public class CreateRouteService {
                 throw new RuntimeException("Google could not find a route for: " + routeNum);
             }
 
-            // Extract the "Overview Polyline"
-            String encodedPolyline = result.routes[0].overviewPolyline.getEncodedPath();
+            List<com.google.maps.model.LatLng> decodedPath = new ArrayList<>();
 
-            // Use the SDK to decode the string into a List<LatLng>
-            List<com.google.maps.model.LatLng> decodedPath = PolylineUtils.decode(encodedPolyline);
+            // Iterate through all legs (routes with waypoints have multiple legs)
+            for (DirectionsLeg leg : result.routes[0].legs) {
+                // Iterate through all steps in each leg
+                for (DirectionsStep step : leg.steps) {
+                    // Decode the high-resolution polyline for this specific step
+                    List<com.google.maps.model.LatLng> stepPoints = PolylineUtils
+                            .decode(step.polyline.getEncodedPath());
+                    decodedPath.addAll(stepPoints);
+                }
+            }
 
             // Convert to JTS Coordinates (X, Y) -> (Long, Lat)
             Coordinate[] coords = decodedPath.stream().map(p -> new Coordinate(p.lng, p.lat))
