@@ -1,7 +1,6 @@
 package Group16.TrackoBus.backend.service;
 
 import java.security.Principal;
-import java.util.LinkedHashMap;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
