@@ -39,8 +39,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         registry.enableSimpleBroker("/topic")
                 .setTaskScheduler(taskScheduler)
-                // Server Sends Heartbeat Every 10s, Server Expects Client Heartbeat Every 10s
-                .setHeartbeatValue(new long[] { 10000, 10000 });
+                // Server Sends Heartbeat Every 60s, Server Expects Client Heartbeat Every 60s
+                .setHeartbeatValue(new long[] { 60000, 60000 });
 
         registry.setApplicationDestinationPrefixes("/app");
     }
