@@ -12,6 +12,7 @@ import Group16.TrackoBus.backend.dto.response.RouteSummaryResponse;
 import Group16.TrackoBus.backend.service.RouteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("api/routes")
@@ -28,6 +29,12 @@ public class RouteController {
     @GetMapping
     public ResponseEntity<List<RouteSummaryResponse>> getAllRoutes() {
         return ResponseEntity.ok(routeService.getAllRoutes());
+    }
+
+    @GetMapping("/proxCheck")
+    public ResponseEntity<Boolean> getProxCheck(@RequestParam String routeNumber, @RequestParam double longitude,
+            @RequestParam double latitude) {
+        return ResponseEntity.ok(routeService.isUserNearRoute(routeNumber, longitude, latitude));
     }
 
 }

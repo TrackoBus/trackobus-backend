@@ -46,4 +46,8 @@ public class RouteService {
         List<RouteSummaryResponse> summaries = routeRepo.findAllRouteSummaries();
         return summaries;
     }
+
+    public boolean isUserNearRoute(String routeNumber, double longitude, double latitude) {
+        return routeRepo.isUserNearRoute(routeNumber, longitude, latitude);
+    }
 }
