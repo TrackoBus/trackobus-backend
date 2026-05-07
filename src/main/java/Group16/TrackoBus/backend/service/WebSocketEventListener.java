@@ -43,6 +43,10 @@ public class WebSocketEventListener {
             String activeBusesCacheKey = "active-buses:" + lastPing.getRouteNumber();
             redisTemplate.opsForHash().delete(activeBusesCacheKey, lastPing.getBusId());
 
+            // Delete from the Geo Set
+            String geokey = "geo-buses:" + lastPing.getRouteNumber();
+            redisTemplate.opsForZSet().remove(geokey, lastPing.getBusId());
+
             // Flip the offline flag and broadcast the "Kill Signal"
             lastPing.setOffline(true);
             String pubSubChannel = "live-route-" + lastPing.getRouteNumber();

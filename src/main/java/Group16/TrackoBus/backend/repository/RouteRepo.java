@@ -18,6 +18,9 @@ public interface RouteRepo extends JpaRepository<Route, Long> {
     @Query("SELECT new Group16.TrackoBus.backend.dto.response.RouteSummaryResponse(r.id, r.routeNumber, r.routeName) FROM Route r")
     List<RouteSummaryResponse> findAllRouteSummaries();
 
+    // Check if user within 50m to the Route
+    // Near the equator, 1 degree of lat or lng is uniformly about 111km
+    // 50 / 111320 ≈ 0.00045 degrees
     @Query(value = """
             SELECT COUNT(r.route_id) > 0
             FROM routes r
