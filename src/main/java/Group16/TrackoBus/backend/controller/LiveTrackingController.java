@@ -2,10 +2,12 @@ package Group16.TrackoBus.backend.controller;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.data.geo.Point;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -16,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Group16.TrackoBus.backend.dto.LocationPingDto;
+import Group16.TrackoBus.backend.service.OsrmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,8 +30,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class LiveTrackingController {
 
     private final RedisTemplate<String, Object> redisTemplate;
-
     private final ObjectMapper objectMapper;
+    private final OsrmService osrmService;
 
     @MessageMapping("/ping")
     public void receiveLocationPing(@Payload LocationPingDto ping, Principal principal) {
@@ -75,6 +79,24 @@ public class LiveTrackingController {
         return rawBuses.stream()
                 .map(obj -> objectMapper.convertValue(obj, LocationPingDto.class))
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/routes/{routeNumber}/buses/{busId}/eta")
+    public ResponseEntity<Map<String, Double>> getBusEta(@PathVariable String routeNumber, @PathVariable String busId,
+            @RequestParam double lat, @RequestParam double lng) {
+
+        String cacheKey = "active-buses:" + routeNumber;
+        Object rawBus = redisTemplate.opsForHash().get(cacheKey, busId);
+
+        if (rawBus == null)
+            return ResponseEntity.notFound().build();
+
+        LocationPingDto bus = objectMapper.convertValue(rawBus, LocationPingDto.class);
+
+        // Fetch raw numeric data from OSRM
+        Map<String, Double> routingData = osrmService.getEtaAndDistance(bus.getLat(), bus.getLng(), lat, lng);
+
+        return ResponseEntity.ok(routingData);
     }
 
 }

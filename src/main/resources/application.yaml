@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: trackobus-backend
+
+  # 1. PostgreSQL Configuration (Azure Flexible Server)
+  datasource:
+    # sslmode=require is mandatory for connecting to Azure PostgreSQL
+    url: jdbc:postgresql://${DB_HOST:trackobus-db-server.postgres.database.azure.com}:5432/${DB_NAME:trackobus}?sslmode=require
+    username: ${DB_USERNAME:trackobusadmin}
+    password: ${DB_PASSWORD} # No default password provided for security
+    driver-class-name: org.postgresql.Driver
+
+  # 2. JPA & Hibernate Configuration (PostGIS Ready)
+  jpa:
+    # Spring Boot 4 / Hibernate 7 will automatically detect the PostGIS extension 
+    # and adapt the dialect when it connects to the database.
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      # 'update' automatically creates and modifies tables based on your Java Entities. 
+      # (Note: Change this to 'validate' when you do your final deployment).
+      ddl-auto: update
+    show-sql: true # Prints SQL queries in the console to help you debug
+    properties:
+      hibernate:
+        "[format_sql]": true
+
+  # 3. Redis Cache Configuration
+  data:
+    redis:
+      # Defaults to localhost for your Docker setup, but can be overridden for Azure Redis
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        # Must be set to true when you eventually switch to Azure Cache for Redis
+        enabled: ${REDIS_SSL:false} 
+
+# 4. Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /trck
+
+# Google Maps API Configuration
+google:
+  maps:
+    api-key: ${GOOGLE_MAPS_API_KEY}
