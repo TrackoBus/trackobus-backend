@@ -18,11 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Group16.TrackoBus.backend.dto.LocationPingDto;
+import Group16.TrackoBus.backend.dto.request.ValidationRequestDto;
 import Group16.TrackoBus.backend.service.OsrmService;
+import Group16.TrackoBus.backend.service.ValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +36,7 @@ public class LiveTrackingController {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
     private final OsrmService osrmService;
+    private final ValidationService validationService;
 
     @MessageMapping("/ping")
     public void receiveLocationPing(@Payload LocationPingDto ping, Principal principal) {
@@ -97,6 +102,15 @@ public class LiveTrackingController {
         Map<String, Double> routingData = osrmService.getEtaAndDistance(bus.getLat(), bus.getLng(), lat, lng);
 
         return ResponseEntity.ok(routingData);
+    }
+
+    @PostMapping("/buses/{busId}/validate")
+    public ResponseEntity<Map<String, String>> busValidationTest(@PathVariable String busId,
+            @RequestBody ValidationRequestDto request) {
+
+        String action = validationService.validateDriver(busId, request);
+
+        return ResponseEntity.ok(Map.of("action", action));
     }
 
 }
