@@ -9,6 +9,6 @@ public class LocationPingDto {
     private double lat;
     private double lng;
     private long timestamp;
-    private boolean primary; // true for 3-sec pings, false for 60-sec backup pings
+    private boolean primary;
     private boolean offline;
 }

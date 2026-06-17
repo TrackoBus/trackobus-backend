@@ -8,4 +8,5 @@ public class ValidationRequestDto {
     private String routeNumber;
     private double currentLat;
     private double currentLng;
+    private boolean primary;
 }
