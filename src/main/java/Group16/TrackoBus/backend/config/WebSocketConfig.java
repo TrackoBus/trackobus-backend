@@ -37,7 +37,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         taskScheduler.setThreadNamePrefix("ws-heartbeat-thread-");
         taskScheduler.initialize();
 
-        registry.enableSimpleBroker("/topic")
+        registry.enableSimpleBroker("/topic", "/queue")
                 .setTaskScheduler(taskScheduler)
                 // Server Sends Heartbeat Every 60s, Server Expects Client Heartbeat Every 60s
                 .setHeartbeatValue(new long[] { 60000, 60000 });

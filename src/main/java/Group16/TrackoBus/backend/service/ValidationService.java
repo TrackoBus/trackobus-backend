@@ -17,9 +17,9 @@ public class ValidationService {
     private final RouteService routeService;
     private final TrackingService trackingService;
 
-    public String validateDriver(String busId, ValidationRequestDto request) {
+    public String validateDriver(String busId, String userId, ValidationRequestDto request) {
 
-        String validationKey = "validation-state:" + busId;
+        String validationKey = "validation-state:" + busId + ":" + userId;
 
         // Fetch previous state from Redis
         Map<Object, Object> previousState = redisTemplate.opsForHash().entries(validationKey);
@@ -42,9 +42,18 @@ public class ValidationService {
         if (!isNearRoute || distanceTraveled < 2000) {
             strikes++;
 
-            if (strikes == 3) {
+            // Backup rider fail
+            if (!request.isPrimary() && strikes >= 3) {
+                redisTemplate.opsForZSet().remove("backup-riders:" + busId, userId);
                 redisTemplate.delete(validationKey);
-                return "KILL";
+                return "KILL_BACKUP";
+
+                // Primary rider fail
+            } else if (request.isPrimary() && strikes >= 3) {
+                // Remove the primary sharer and send kill message to frontend
+                trackingService.killBusAndCleanUp(busId, request.getRouteNumber());
+                redisTemplate.delete(validationKey);
+                return "KILL_PRIMARY";
             } else {
                 redisTemplate.opsForHash().put(validationKey, "lat", request.getCurrentLat());
                 redisTemplate.opsForHash().put(validationKey, "lng", request.getCurrentLng());
