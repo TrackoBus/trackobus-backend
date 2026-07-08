@@ -14,7 +14,7 @@ fi
 
 # Run OSRM extract
 echo "Extracting profile (car.lua)..."
-docker run --rm -v "$(pwd)/osrm-data:/data" osrm/osrm-backend osrm-extract -p /profiles/car.lua /data/sri-lanka-latest.osm.pbf
+docker run --rm -v "$(pwd)/osrm-data:/data" osrm/osrm-backend osrm-extract -p /opt/car.lua /data/sri-lanka-latest.osm.pbf
 
 # Run OSRM partition
 echo "Partitioning map data..."
