@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database with PostGIS
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: trackobus-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-trackobus}
+      POSTGRES_USER: ${DB_USERNAME:-trackobusadmin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # 2. Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: trackobus-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  # 3. OSRM Routing Engine (Sri Lanka Map)
+  osrm:
+    image: osrm/osrm-backend:latest
+    container_name: trackobus-osrm
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./osrm-data:/data
+    command: osrm-routed --algorithm mld /data/sri-lanka-latest.osrm
+
+  # 4. Spring Boot Backend
+  app:
+    build: .
+    container_name: trackobus-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+      - osrm
+    environment:
+      # Database connection parameters targeting the 'db' service in the same network
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:-trackobus}
+      DB_USERNAME: ${DB_USERNAME:-trackobusadmin}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SSL_MODE: "?sslmode=disable" # SSL disabled for Docker network connections
+      
+      # Redis connection parameters targeting the 'redis' service
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_SSL: "false"
+
+      # OSRM Service connection targeting the 'osrm' service
+      OSRM_SERVER_URL: http://osrm:5000
+      
+      # Other Secrets
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
